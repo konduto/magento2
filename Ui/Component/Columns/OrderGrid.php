@@ -1,4 +1,4 @@
-ç<?php
+<?php
 
 namespace Konduto\Antifraud\Ui\Component\Columns;
 
