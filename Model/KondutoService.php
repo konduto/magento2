@@ -22,6 +22,8 @@ use Magento\Sales\Model\Service\InvoiceService;
  */
 class KondutoService extends AbstractModel
 {
+    const KONDUTO_APPROVED = 'approved';
+
     /**
      * It is used if there is a problem with communication with Konduto
      */
@@ -195,12 +197,7 @@ class KondutoService extends AbstractModel
     public function updateOrder($params)
     {
         $isValidSignature = $this->helper->validateSignature($params);
-
-        if ($isValidSignature) {
-            $kondutoResponse = $this->updateOrderStatus($params['order_id'], $params['status']);
-        }
-
-        if (!isset($kondutoResponse) || $kondutoResponse === false) {
+        if (!$isValidSignature) {
             return false;
         }
 
@@ -211,8 +208,10 @@ class KondutoService extends AbstractModel
         $this->updateHistory($order->getId(), $params['status']);
         $order->setKondutoStatus($params['status']);
         if ($this->helper->getAutomaticKondutoUpdate()) {
-            $order->setStatus($this->helper->getStatusCode($params['status']));
-            if ($params['status'] = 'approved') {
+            $order->setStatus(
+                $this->helper->getStatusCode(strtolower($params['status']))
+            );
+            if (strtolower($params['status']) == self::KONDUTO_APPROVED) {
                 $this->createInvoice($order);
             }
         }
